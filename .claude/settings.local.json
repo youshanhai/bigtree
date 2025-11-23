@@ -8,7 +8,11 @@
       "Edit(**)",
       "Bash(git clone:*)",
       "Bash(cat:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(tree:*)",
+      "Bash(lsof:*)",
+      "Bash(chmod:*)",
+      "Bash(./kill-port.sh:*)"
     ],
     "deny": [],
     "ask": []
