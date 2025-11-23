@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(hexo:*)",
+      "Bash(npm:*)",
+      "Bash(git:*)",
+      "Bash(node:*)",
+      "Edit(**)",
+      "Bash(git clone:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
