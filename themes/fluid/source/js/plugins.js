@@ -18,7 +18,16 @@ Fluid.plugins = {
       ],
       cursorChar: CONFIG.typing.cursorChar,
       typeSpeed : CONFIG.typing.typeSpeed,
-      loop      : CONFIG.typing.loop
+      loop      : CONFIG.typing.loop,
+      onComplete: function() {
+        // 打字完成后隐藏光标
+        if (!CONFIG.typing.loop) {
+          var cursor = document.querySelector('.typed-cursor');
+          if (cursor) {
+            cursor.style.display = 'none';
+          }
+        }
+      }
     });
     typed.stop();
     var subtitle = document.getElementById('subtitle');
