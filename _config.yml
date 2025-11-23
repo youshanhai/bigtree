@@ -3,17 +3,17 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: DuduJoy 的博客
+title: 大树 的博客
 subtitle: '分享技术，记录生活'
 description: '一个专注于技术分享的个人博客'
 keywords: 技术博客, Hexo, 前端开发, JavaScript
-author: DuduJoy
+author: 大树
 language: zh-CN
 timezone: Asia/Shanghai
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-url: http://example.com
+url: https://youshanhai.github.io/bigtree/
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:
@@ -103,4 +103,4 @@ theme: fluid
 deploy:
   type: git
   repo: git@github.com:youshanhai/bigtree.git
-  branch: sta
+  branch: blog

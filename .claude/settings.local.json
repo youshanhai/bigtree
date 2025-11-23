@@ -6,7 +6,8 @@
       "Bash(git:*)",
       "Bash(node:*)",
       "Edit(**)",
-      "Bash(git clone:*)"
+      "Bash(git clone:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
