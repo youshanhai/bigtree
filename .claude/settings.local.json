@@ -12,7 +12,9 @@
       "Bash(tree:*)",
       "Bash(lsof:*)",
       "Bash(chmod:*)",
-      "Bash(./kill-port.sh:*)"
+      "Bash(./kill-port.sh:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
