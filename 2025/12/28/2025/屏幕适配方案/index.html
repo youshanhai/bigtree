@@ -1,0 +1,972 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fav.png">
+  <link rel="icon" href="/img/fav.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="大树">
+  <meta name="keywords" content="技术博客, Hexo, 前端开发, JavaScript">
+  
+    <meta name="description" content="方案概述本文基于 density 修改的屏幕适配方案，通过修改系统的 density 值来实现不同尺寸设备上的 UI 等比例缩放。 可以实现下面的效果  核心优势 代码简洁：仅 237 行代码，逻辑清晰 兼容性好：适用于所有 Android 设备和模拟器 零侵入性：布局使用标准的 dp&#x2F;sp 单位，无需修改现有代码 性能优秀：缓存机制 + 反射优化，几乎无性能损耗 使用简单：一行代码即可">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 屏幕适配方案">
+<meta property="og:url" content="https://blog.youshanhai.com/2025/12/28/2025/%E5%B1%8F%E5%B9%95%E9%80%82%E9%85%8D%E6%96%B9%E6%A1%88/index.html">
+<meta property="og:site_name" content="大树的博客">
+<meta property="og:description" content="方案概述本文基于 density 修改的屏幕适配方案，通过修改系统的 density 值来实现不同尺寸设备上的 UI 等比例缩放。 可以实现下面的效果  核心优势 代码简洁：仅 237 行代码，逻辑清晰 兼容性好：适用于所有 Android 设备和模拟器 零侵入性：布局使用标准的 dp&#x2F;sp 单位，无需修改现有代码 性能优秀：缓存机制 + 反射优化，几乎无性能损耗 使用简单：一行代码即可">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.youshanhai.com/2025/12/28/2025/%E5%B1%8F%E5%B9%95%E9%80%82%E9%85%8D%E6%96%B9%E6%A1%88/01.png">
+<meta property="article:published_time" content="2025-12-28T01:00:00.000Z">
+<meta property="article:modified_time" content="2025-12-28T03:59:31.115Z">
+<meta property="article:author" content="大树">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="iOS">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://blog.youshanhai.com/2025/12/28/2025/%E5%B1%8F%E5%B9%95%E9%80%82%E9%85%8D%E6%96%B9%E6%A1%88/01.png">
+  
+  
+  
+  <title>Android 屏幕适配方案 - 大树的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"blog.youshanhai.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":"bfc86a9bb5404ab149b3d9fcfe273e7f","google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+    <!-- Baidu Analytics -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?bfc86a9bb5404ab149b3d9fcfe273e7f";
+          var s = document.getElementsByTagName("script")[0];
+          s.parentNode.insertBefore(hm, s);
+        })();
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 40vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>大树的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/banner.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Android 屏幕适配方案"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-12-28 09:00" pubdate>
+          2025年12月28日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          22 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Android 屏幕适配方案</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="方案概述"><a href="#方案概述" class="headerlink" title="方案概述"></a>方案概述</h2><p>本文基于 density 修改的屏幕适配方案，通过修改系统的 <code>density</code> 值来实现不同尺寸设备上的 UI 等比例缩放。</p>
+<p>可以实现下面的效果</p>
+<p><img src="/2025/12/28/2025/%E5%B1%8F%E5%B9%95%E9%80%82%E9%85%8D%E6%96%B9%E6%A1%88/01.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="核心优势"><a href="#核心优势" class="headerlink" title="核心优势"></a>核心优势</h3><ul>
+<li><strong>代码简洁</strong>：仅 237 行代码，逻辑清晰</li>
+<li><strong>兼容性好</strong>：适用于所有 Android 设备和模拟器</li>
+<li><strong>零侵入性</strong>：布局使用标准的 dp&#x2F;sp 单位，无需修改现有代码</li>
+<li><strong>性能优秀</strong>：缓存机制 + 反射优化，几乎无性能损耗</li>
+<li><strong>使用简单</strong>：一行代码即可完成适配</li>
+</ul>
+<hr>
+<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><h3 id="Android-的-dp-单位"><a href="#Android-的-dp-单位" class="headerlink" title="Android 的 dp 单位"></a>Android 的 dp 单位</h3><p>Android 中，dp（density-independent pixel，密度无关像素）到像素的转换公式：</p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs abnf">像素 px <span class="hljs-operator">=</span> dp 值 × density<br></code></pre></td></tr></table></figure>
+
+<p>例如，在一个 <code>density = 3.0</code> 的设备上：</p>
+<ul>
+<li><code>100dp</code> &#x3D; <code>100 × 3.0</code> &#x3D; <code>300px</code></li>
+</ul>
+<h3 id="适配原理"><a href="#适配原理" class="headerlink" title="适配原理"></a>适配原理</h3><p>通过修改 <code>density</code> 值，让不同设备的”1dp”代表不同的像素数，从而实现等比例缩放。</p>
+<p><strong>适配公式：</strong></p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs abnf">新 density <span class="hljs-operator">=</span> 设备屏幕宽度(px) ÷ 设计稿宽度(dp)<br></code></pre></td></tr></table></figure>
+
+<p><strong>示例：</strong></p>
+<p>假设设计稿宽度为 <code>360dp</code>：</p>
+<table>
+<thead>
+<tr>
+<th>设备</th>
+<th>屏幕宽度</th>
+<th>计算公式</th>
+<th>新 density</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>手机A</td>
+<td>1080px</td>
+<td>1080 ÷ 360</td>
+<td>3.0</td>
+<td>1dp &#x3D; 3px</td>
+</tr>
+<tr>
+<td>手机B</td>
+<td>720px</td>
+<td>720 ÷ 360</td>
+<td>2.0</td>
+<td>1dp &#x3D; 2px</td>
+</tr>
+<tr>
+<td>手机C</td>
+<td>1440px</td>
+<td>1440 ÷ 360</td>
+<td>4.0</td>
+<td>1dp &#x3D; 4px</td>
+</tr>
+</tbody></table>
+<p>这样，设计稿中的 <code>360dp</code> 宽度，在所有设备上都会占满整个屏幕宽度。</p>
+<hr>
+<h2 id="快速开始"><a href="#快速开始" class="headerlink" title="快速开始"></a>快速开始</h2><h3 id="1-在-Activity-中启用适配"><a href="#1-在-Activity-中启用适配" class="headerlink" title="1. 在 Activity 中启用适配"></a>1. 在 Activity 中启用适配</h3><p>在 Activity 的 <code>getResources()</code> 方法中调用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-keyword">public</span> Resources <span class="hljs-title function_">getResources</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">Resources</span> <span class="hljs-variable">resources</span> <span class="hljs-operator">=</span> <span class="hljs-built_in">super</span>.getResources();<br>    <span class="hljs-comment">// 360 是你的设计稿宽度(dp)</span><br>    <span class="hljs-keyword">return</span> AdaptScreenUtils.adaptWidth(resources, <span class="hljs-number">360</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-在-BaseActivity-中全局启用"><a href="#2-在-BaseActivity-中全局启用" class="headerlink" title="2. 在 BaseActivity 中全局启用"></a>2. 在 BaseActivity 中全局启用</h3><p>如果你有基类 Activity，推荐在基类中统一处理：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BaseActivity</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">AppCompatActivity</span> &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Resources <span class="hljs-title function_">getResources</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">Resources</span> <span class="hljs-variable">resources</span> <span class="hljs-operator">=</span> <span class="hljs-built_in">super</span>.getResources();<br>        <span class="hljs-keyword">return</span> AdaptScreenUtils.adaptWidth(resources, <span class="hljs-number">360</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>之后所有继承 <code>BaseActivity</code> 的 Activity 都会自动适配。</p>
+<h3 id="3-编写布局文件"><a href="#3-编写布局文件" class="headerlink" title="3. 编写布局文件"></a>3. 编写布局文件</h3><p>正常使用 <code>dp</code> 和 <code>sp</code> 单位即可：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">TextView</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;100dp&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;50dp&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:textSize</span>=<span class="hljs-string">&quot;16sp&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:padding</span>=<span class="hljs-string">&quot;12dp&quot;</span> /&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>就这么简单！</strong></p>
+<hr>
+<h2 id="API-文档"><a href="#API-文档" class="headerlink" title="API 文档"></a>API 文档</h2><h3 id="方法列表"><a href="#方法列表" class="headerlink" title="方法列表"></a>方法列表</h3><h4 id="1-adaptWidth-按宽度适配"><a href="#1-adaptWidth-按宽度适配" class="headerlink" title="1. adaptWidth() - 按宽度适配"></a>1. adaptWidth() - 按宽度适配</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">AdaptScreenUtils.adaptWidth(Resources resources, <span class="hljs-type">int</span> designWidth)<br></code></pre></td></tr></table></figure>
+
+<p><strong>参数：</strong></p>
+<ul>
+<li><code>resources</code>：Activity 的 Resources 对象</li>
+<li><code>designWidth</code>：设计稿宽度，单位 dp（例如：360）</li>
+</ul>
+<p><strong>返回：</strong></p>
+<ul>
+<li>适配后的 Resources 对象</li>
+</ul>
+<p><strong>适用场景：</strong></p>
+<ul>
+<li>大部分应用（推荐）</li>
+<li>横屏应用</li>
+<li>以宽度为基准的适配需求</li>
+</ul>
+<hr>
+<h4 id="2-adaptHeight-按高度适配"><a href="#2-adaptHeight-按高度适配" class="headerlink" title="2. adaptHeight() - 按高度适配"></a>2. adaptHeight() - 按高度适配</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 方式1：不包含导航栏</span><br>AdaptScreenUtils.adaptHeight(Resources resources, <span class="hljs-type">int</span> designHeight)<br><br><span class="hljs-comment">// 方式2：包含导航栏高度</span><br>AdaptScreenUtils.adaptHeight(Resources resources, <span class="hljs-type">int</span> designHeight, <span class="hljs-type">boolean</span> includeNavBar)<br></code></pre></td></tr></table></figure>
+
+<p><strong>参数：</strong></p>
+<ul>
+<li><code>resources</code>：Activity 的 Resources 对象</li>
+<li><code>designHeight</code>：设计稿高度，单位 dp（例如：640）</li>
+<li><code>includeNavBar</code>：是否将导航栏高度计入计算</li>
+</ul>
+<p><strong>适用场景：</strong></p>
+<ul>
+<li>竖屏游戏</li>
+<li>以高度为基准的适配需求</li>
+<li>需要固定高度比例的界面</li>
+</ul>
+<hr>
+<h4 id="3-closeAdapt-关闭适配"><a href="#3-closeAdapt-关闭适配" class="headerlink" title="3. closeAdapt() - 关闭适配"></a>3. closeAdapt() - 关闭适配</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">AdaptScreenUtils.closeAdapt(Resources resources)<br></code></pre></td></tr></table></figure>
+
+<p>恢复系统默认的 density 值。</p>
+<p><strong>适用场景：</strong></p>
+<ul>
+<li>某些特殊页面需要使用系统默认显示</li>
+<li>第三方 SDK 页面</li>
+<li>WebView 页面</li>
+</ul>
+<hr>
+<h4 id="4-dp2Px-px2Dp-单位转换"><a href="#4-dp2Px-px2Dp-单位转换" class="headerlink" title="4. dp2Px() &#x2F; px2Dp() - 单位转换"></a>4. dp2Px() &#x2F; px2Dp() - 单位转换</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// dp 转 px</span><br><span class="hljs-type">int</span> <span class="hljs-variable">px</span> <span class="hljs-operator">=</span> AdaptScreenUtils.dp2Px(resources, <span class="hljs-number">100f</span>);<br><br><span class="hljs-comment">// px 转 dp</span><br><span class="hljs-type">int</span> <span class="hljs-variable">dp</span> <span class="hljs-operator">=</span> AdaptScreenUtils.px2Dp(resources, <span class="hljs-number">300f</span>);<br></code></pre></td></tr></table></figure>
+
+<p>代码中动态计算尺寸时使用。</p>
+<hr>
+<h2 id="使用建议"><a href="#使用建议" class="headerlink" title="使用建议"></a>使用建议</h2><h3 id="1-设计稿宽度的选择"><a href="#1-设计稿宽度的选择" class="headerlink" title="1. 设计稿宽度的选择"></a>1. 设计稿宽度的选择</h3><table>
+<thead>
+<tr>
+<th>设计稿宽度</th>
+<th>适用场景</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>360dp</td>
+<td><strong>推荐</strong></td>
+<td>Android 主流手机宽度</td>
+</tr>
+<tr>
+<td>375dp</td>
+<td>iOS 适配</td>
+<td>对应 iPhone 标准宽度</td>
+</tr>
+<tr>
+<td>414dp</td>
+<td>大屏手机</td>
+<td>对应 iPhone Plus 宽度</td>
+</tr>
+</tbody></table>
+<p><strong>建议使用 360dp</strong>，这是 Android 最常见的基准宽度。</p>
+<h3 id="2-布局单位使用规范"><a href="#2-布局单位使用规范" class="headerlink" title="2. 布局单位使用规范"></a>2. 布局单位使用规范</h3><table>
+<thead>
+<tr>
+<th>属性类型</th>
+<th>推荐单位</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>宽度&#x2F;高度</td>
+<td><code>dp</code></td>
+<td>固定尺寸</td>
+</tr>
+<tr>
+<td>内外边距</td>
+<td><code>dp</code></td>
+<td>固定间距</td>
+</tr>
+<tr>
+<td>正文字体</td>
+<td><code>sp</code></td>
+<td>跟随系统字体缩放</td>
+</tr>
+<tr>
+<td>标题&#x2F;装饰字体</td>
+<td><code>dp</code></td>
+<td>固定大小，不跟随系统缩放</td>
+</tr>
+</tbody></table>
+<p><strong>示例：</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">TextView</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:layout_width</span>=<span class="hljs-string">&quot;match_parent&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:layout_height</span>=<span class="hljs-string">&quot;48dp&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:textSize</span>=<span class="hljs-string">&quot;16sp&quot;</span></span><br><span class="hljs-tag">    <span class="hljs-attr">android:paddingHorizontal</span>=<span class="hljs-string">&quot;16dp&quot;</span> /&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="3-特殊情况处理"><a href="#3-特殊情况处理" class="headerlink" title="3. 特殊情况处理"></a>3. 特殊情况处理</h3><p><strong>情况1：某个页面不需要适配</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SpecialActivity</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">AppCompatActivity</span> &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Resources <span class="hljs-title function_">getResources</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">Resources</span> <span class="hljs-variable">resources</span> <span class="hljs-operator">=</span> <span class="hljs-built_in">super</span>.getResources();<br>        <span class="hljs-comment">// 关闭适配</span><br>        <span class="hljs-keyword">return</span> AdaptScreenUtils.closeAdapt(resources);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>情况2：使用第三方 UI 库时</strong></p>
+<p>如果第三方库的 UI 显示异常，可以尝试在该页面关闭适配，或调整适配参数。</p>
+<p><strong>情况3：WebView 页面</strong></p>
+<p>WebView 内部有自己的适配逻辑，建议关闭适配：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">WebActivity</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">AppCompatActivity</span> &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Resources <span class="hljs-title function_">getResources</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> AdaptScreenUtils.closeAdapt(<span class="hljs-built_in">super</span>.getResources());<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="性能优化说明"><a href="#性能优化说明" class="headerlink" title="性能优化说明"></a>性能优化说明</h2><h3 id="缓存机制"><a href="#缓存机制" class="headerlink" title="缓存机制"></a>缓存机制</h3><p>工具类内部实现了缓存机制：</p>
+<ul>
+<li>缓存计算后的 density 值</li>
+<li>100ms 内相同的 density 不重复应用</li>
+<li>避免频繁修改带来的性能开销</li>
+</ul>
+<h3 id="反射优化"><a href="#反射优化" class="headerlink" title="反射优化"></a>反射优化</h3><ul>
+<li>首次调用时通过反射查找所有 DisplayMetrics 字段</li>
+<li>缓存反射结果，后续调用直接使用</li>
+<li>确保 density 修改应用到 Resources 的所有实例</li>
+</ul>
+<hr>
+<h2 id="调试与日志"><a href="#调试与日志" class="headerlink" title="调试与日志"></a>调试与日志</h2><p>开启调试日志可以查看适配详情：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">D</span>/AdaptScreenUtils: Adapting screen - Width: <span class="hljs-number">1080</span>px, Design width: <span class="hljs-number">360</span>dp, Original density: <span class="hljs-number">3</span>.<span class="hljs-number">0</span>, Target density: <span class="hljs-number">3</span>.<span class="hljs-number">0</span>, Target densityDpi: <span class="hljs-number">480</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>日志说明：</strong></p>
+<ul>
+<li><code>Width</code>：设备屏幕宽度（像素）</li>
+<li><code>Design width</code>：设计稿宽度（dp）</li>
+<li><code>Original density</code>：系统原始 density</li>
+<li><code>Target density</code>：计算后的目标 density</li>
+<li><code>Target densityDpi</code>：对应的 densityDpi 值</li>
+</ul>
+<hr>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><h3 id="Q1-为什么文字大小使用-sp-而不是-dp？"><a href="#Q1-为什么文字大小使用-sp-而不是-dp？" class="headerlink" title="Q1: 为什么文字大小使用 sp 而不是 dp？"></a>Q1: 为什么文字大小使用 sp 而不是 dp？</h3><p><strong>A:</strong> <code>sp</code> 单位会跟随用户的系统字体大小设置进行缩放，提升可访问性。正文使用 <code>sp</code>，装饰性文字可以使用 <code>dp</code>。</p>
+<h3 id="Q2-适配后图片资源会变模糊吗？"><a href="#Q2-适配后图片资源会变模糊吗？" class="headerlink" title="Q2: 适配后图片资源会变模糊吗？"></a>Q2: 适配后图片资源会变模糊吗？</h3><p><strong>A:</strong> 不会。Android 系统会根据 <code>densityDpi</code> 自动选择合适的图片资源（hdpi、xhdpi、xxhdpi 等）。建议提供多套图片资源以获得最佳显示效果。</p>
+<h3 id="Q3-平板设备需要单独适配吗？"><a href="#Q3-平板设备需要单独适配吗？" class="headerlink" title="Q3: 平板设备需要单独适配吗？"></a>Q3: 平板设备需要单独适配吗？</h3><p><strong>A:</strong> 看需求。如果希望平板显示更多内容，可以在平板上使用更大的设计稿宽度（如 600dp）；如果希望和手机等比例放大，使用相同的设计稿宽度即可。</p>
+<h3 id="Q4-横竖屏切换会有问题吗？"><a href="#Q4-横竖屏切换会有问题吗？" class="headerlink" title="Q4: 横竖屏切换会有问题吗？"></a>Q4: 横竖屏切换会有问题吗？</h3><p><strong>A:</strong> 不会。每次调用 <code>getResources()</code> 时都会重新计算 density，横竖屏切换会自动重新适配。</p>
+<h3 id="Q5-适配方案会影响第三方库吗？"><a href="#Q5-适配方案会影响第三方库吗？" class="headerlink" title="Q5: 适配方案会影响第三方库吗？"></a>Q5: 适配方案会影响第三方库吗？</h3><p><strong>A:</strong> 极少数情况下可能有影响。如果遇到第三方库显示异常，可以在该页面单独关闭适配。</p>
+<hr>
+<h2 id="实际效果演示"><a href="#实际效果演示" class="headerlink" title="实际效果演示"></a>实际效果演示</h2><h3 id="设计稿：360dp-×-640dp"><a href="#设计稿：360dp-×-640dp" class="headerlink" title="设计稿：360dp × 640dp"></a>设计稿：360dp × 640dp</h3><p><strong>手机A（1080×1920）：</strong></p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs abnf"><span class="hljs-attribute">density</span> <span class="hljs-operator">=</span> <span class="hljs-number">1080</span> / <span class="hljs-number">360</span> <span class="hljs-operator">=</span> <span class="hljs-number">3.0</span><br>设计稿中的 <span class="hljs-number">100</span>dp 按钮 → 实际显示 <span class="hljs-number">300</span>px<br></code></pre></td></tr></table></figure>
+
+<p><strong>手机B（720×1280）：</strong></p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs abnf"><span class="hljs-attribute">density</span> <span class="hljs-operator">=</span> <span class="hljs-number">720</span> / <span class="hljs-number">360</span> <span class="hljs-operator">=</span> <span class="hljs-number">2.0</span><br>设计稿中的 <span class="hljs-number">100</span>dp 按钮 → 实际显示 <span class="hljs-number">200</span>px<br></code></pre></td></tr></table></figure>
+
+<p><strong>手机C（1440×2560）：</strong></p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs abnf"><span class="hljs-attribute">density</span> <span class="hljs-operator">=</span> <span class="hljs-number">1440</span> / <span class="hljs-number">360</span> <span class="hljs-operator">=</span> <span class="hljs-number">4.0</span><br>设计稿中的 <span class="hljs-number">100</span>dp 按钮 → 实际显示 <span class="hljs-number">400</span>px<br></code></pre></td></tr></table></figure>
+
+<p>虽然实际像素不同，但按钮在三台设备上<strong>占屏幕宽度的比例完全一致</strong>，视觉效果相同。</p>
+<hr>
+<h2 id="技术细节"><a href="#技术细节" class="headerlink" title="技术细节"></a>技术细节</h2><h3 id="核心实现"><a href="#核心实现" class="headerlink" title="核心实现"></a>核心实现</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 计算目标 density</span><br><span class="hljs-type">float</span> <span class="hljs-variable">targetDensity</span> <span class="hljs-operator">=</span> dm.widthPixels / (<span class="hljs-type">float</span>) designWidth;<br><span class="hljs-type">float</span> <span class="hljs-variable">targetScaledDensity</span> <span class="hljs-operator">=</span> targetDensity * (dm.scaledDensity / dm.density);<br><span class="hljs-type">int</span> <span class="hljs-variable">targetDensityDpi</span> <span class="hljs-operator">=</span> (<span class="hljs-type">int</span>) (targetDensity * <span class="hljs-number">160</span>);<br><br><span class="hljs-comment">// 应用到 DisplayMetrics</span><br>dm.density = targetDensity;<br>dm.scaledDensity = targetScaledDensity;<br>dm.densityDpi = targetDensityDpi;<br><br><span class="hljs-comment">// 通过反射应用到所有 DisplayMetrics 实例</span><br>applyOtherDisplayMetrics(resources, targetDensity, targetScaledDensity, targetDensityDpi);<br></code></pre></td></tr></table></figure>
+
+<h3 id="densityDpi-的作用"><a href="#densityDpi-的作用" class="headerlink" title="densityDpi 的作用"></a>densityDpi 的作用</h3><p><code>densityDpi</code> 用于图片资源的选择：</p>
+<ul>
+<li><code>densityDpi = 160</code>：mdpi（1x）</li>
+<li><code>densityDpi = 240</code>：hdpi（1.5x）</li>
+<li><code>densityDpi = 320</code>：xhdpi（2x）</li>
+<li><code>densityDpi = 480</code>：xxhdpi（3x）</li>
+<li><code>densityDpi = 640</code>：xxxhdpi（4x）</li>
+</ul>
+<hr>
+<h2 id="源码信息"><a href="#源码信息" class="headerlink" title="源码信息"></a>源码信息</h2><p><strong>代码统计：</strong></p>
+<ul>
+<li>总行数：237 行</li>
+<li>公开方法：7 个</li>
+<li>私有方法：3 个</li>
+<li>无外部依赖</li>
+</ul>
+<p><strong>方法列表：</strong></p>
+<ul>
+<li><code>adaptWidth(Resources, int)</code> - 宽度适配</li>
+<li><code>adaptHeight(Resources, int)</code> - 高度适配</li>
+<li><code>adaptHeight(Resources, int, boolean)</code> - 高度适配（含导航栏选项）</li>
+<li><code>closeAdapt(Resources)</code> - 关闭适配</li>
+<li><code>dp2Px(Resources, float)</code> - dp 转 px</li>
+<li><code>px2Dp(Resources, float)</code> - px 转 dp</li>
+<li><code>getNavBarHeight(Resources)</code> - 获取导航栏高度（私有）</li>
+<li><code>applyOtherDisplayMetrics(...)</code> - 应用到所有 DisplayMetrics（私有）</li>
+<li><code>getMetricsFromField(...)</code> - 反射获取字段（私有）</li>
+</ul>
+<hr>
+<p>AdaptScreenUtils 代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> android.content.res.Resources;<br><span class="hljs-keyword">import</span> android.util.DisplayMetrics;<br><span class="hljs-keyword">import</span> android.util.Log;<br><br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.util.ArrayList;<br><span class="hljs-keyword">import</span> java.util.List;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * 屏幕适配工具类 - 基于 dp 单位的适配方案</span><br><span class="hljs-comment"> * 通过修改 DisplayMetrics.density 值来改变 dp 单位的换算比例</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * 原理：dp to px 的换算公式为 px = dp × density</span><br><span class="hljs-comment"> * 通过设置 density = 屏幕宽度px / 设计稿宽度dp，使得设计稿在不同设备上保持相同的视觉比例</span><br><span class="hljs-comment"> */</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AdaptScreenUtils</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-variable">TAG</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;AdaptScreenUtils&quot;</span>;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> List&lt;Field&gt; sMetricsFields;<br><br>    <span class="hljs-comment">// 缓存已应用的 density 值，避免频繁修改</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">float</span> <span class="hljs-variable">sCurrentDensity</span> <span class="hljs-operator">=</span> -<span class="hljs-number">1</span>;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">long</span> <span class="hljs-variable">sLastApplyTime</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">APPLY_INTERVAL</span> <span class="hljs-operator">=</span> <span class="hljs-number">100</span>; <span class="hljs-comment">// 100ms内不重复应用</span><br><br>    <span class="hljs-keyword">private</span> <span class="hljs-title function_">AdaptScreenUtils</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UnsupportedOperationException</span>(<span class="hljs-string">&quot;Cannot instantiate AdaptScreenUtils&quot;</span>);<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 根据设计稿宽度进行适配（适用于横屏或以宽度为基准的适配）</span><br><span class="hljs-comment">     * 在 Activity 的 getResources() 方法中调用</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> resources   资源对象</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> designWidth 设计稿宽度（单位：dp）</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 适配后的 Resources</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Resources <span class="hljs-title function_">adaptWidth</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Resources resources, <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> designWidth)</span> &#123;<br>        <span class="hljs-type">DisplayMetrics</span> <span class="hljs-variable">dm</span> <span class="hljs-operator">=</span> resources.getDisplayMetrics();<br><br>        <span class="hljs-comment">// 计算目标 density</span><br>        <span class="hljs-comment">// 公式: density = 屏幕实际宽度(px) / 设计稿宽度(dp)</span><br>        <span class="hljs-type">float</span> <span class="hljs-variable">targetDensity</span> <span class="hljs-operator">=</span> dm.widthPixels / (<span class="hljs-type">float</span>) designWidth;<br>        <span class="hljs-type">float</span> <span class="hljs-variable">targetScaledDensity</span> <span class="hljs-operator">=</span> targetDensity * (dm.scaledDensity / dm.density);<br>        <span class="hljs-type">int</span> <span class="hljs-variable">targetDensityDpi</span> <span class="hljs-operator">=</span> (<span class="hljs-type">int</span>) (targetDensity * <span class="hljs-number">160</span>);<br><br>        <span class="hljs-comment">// 缓存机制：如果 density 已经是目标值，且在时间间隔内，直接返回，避免频繁修改</span><br>        <span class="hljs-type">long</span> <span class="hljs-variable">currentTime</span> <span class="hljs-operator">=</span> System.currentTimeMillis();<br>        <span class="hljs-keyword">if</span> (Math.abs(sCurrentDensity - targetDensity) &lt; <span class="hljs-number">0.01f</span> &amp;&amp;<br>            (currentTime - sLastApplyTime) &lt; APPLY_INTERVAL) &#123;<br>            <span class="hljs-keyword">return</span> resources;<br>        &#125;<br><br>        <span class="hljs-comment">// 打印调试信息（仅在实际应用时打印）</span><br>        Log.d(TAG, <span class="hljs-string">&quot;Adapting screen - Width: &quot;</span> + dm.widthPixels + <span class="hljs-string">&quot;px&quot;</span> +<br>                <span class="hljs-string">&quot;, Design width: &quot;</span> + designWidth + <span class="hljs-string">&quot;dp&quot;</span> +<br>                <span class="hljs-string">&quot;, Original density: &quot;</span> + dm.density +<br>                <span class="hljs-string">&quot;, Target density: &quot;</span> + targetDensity +<br>                <span class="hljs-string">&quot;, Target densityDpi: &quot;</span> + targetDensityDpi);<br><br>        <span class="hljs-comment">// 应用新的 density 值</span><br>        dm.density = targetDensity;<br>        dm.scaledDensity = targetScaledDensity;<br>        dm.densityDpi = targetDensityDpi;<br><br>        <span class="hljs-comment">// 应用到所有 DisplayMetrics 字段</span><br>        applyOtherDisplayMetrics(resources, targetDensity, targetScaledDensity, targetDensityDpi);<br><br>        <span class="hljs-comment">// 更新缓存</span><br>        sCurrentDensity = targetDensity;<br>        sLastApplyTime = currentTime;<br><br>        <span class="hljs-keyword">return</span> resources;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 根据设计稿高度进行适配（适用于竖屏或以高度为基准的适配）</span><br><span class="hljs-comment">     * 在 Activity 的 getResources() 方法中调用</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> resources    资源对象</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> designHeight 设计稿高度（单位：dp）</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 适配后的 Resources</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Resources <span class="hljs-title function_">adaptHeight</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Resources resources, <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> designHeight)</span> &#123;<br>        <span class="hljs-keyword">return</span> adaptHeight(resources, designHeight, <span class="hljs-literal">false</span>);<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 根据设计稿高度进行适配（适用于竖屏或以高度为基准的适配）</span><br><span class="hljs-comment">     * 在 Activity 的 getResources() 方法中调用</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> resources     资源对象</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> designHeight  设计稿高度（单位：dp）</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> includeNavBar 是否包含导航栏高度</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 适配后的 Resources</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Resources <span class="hljs-title function_">adaptHeight</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Resources resources, <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> designHeight,</span><br><span class="hljs-params">            <span class="hljs-keyword">final</span> <span class="hljs-type">boolean</span> includeNavBar)</span> &#123;<br>        <span class="hljs-type">DisplayMetrics</span> <span class="hljs-variable">dm</span> <span class="hljs-operator">=</span> resources.getDisplayMetrics();<br><br>        <span class="hljs-type">int</span> <span class="hljs-variable">screenHeight</span> <span class="hljs-operator">=</span> dm.heightPixels + (includeNavBar ? getNavBarHeight(resources) : <span class="hljs-number">0</span>);<br><br>        <span class="hljs-comment">// 计算目标 density</span><br>        <span class="hljs-comment">// 公式: density = 屏幕实际高度(px) / 设计稿高度(dp)</span><br>        <span class="hljs-type">float</span> <span class="hljs-variable">targetDensity</span> <span class="hljs-operator">=</span> screenHeight / (<span class="hljs-type">float</span>) designHeight;<br>        <span class="hljs-type">float</span> <span class="hljs-variable">targetScaledDensity</span> <span class="hljs-operator">=</span> targetDensity * (dm.scaledDensity / dm.density);<br>        <span class="hljs-type">int</span> <span class="hljs-variable">targetDensityDpi</span> <span class="hljs-operator">=</span> (<span class="hljs-type">int</span>) (targetDensity * <span class="hljs-number">160</span>);<br><br>        <span class="hljs-comment">// 应用新的 density 值</span><br>        dm.density = targetDensity;<br>        dm.scaledDensity = targetScaledDensity;<br>        dm.densityDpi = targetDensityDpi;<br><br>        <span class="hljs-comment">// 应用到所有 DisplayMetrics 字段</span><br>        applyOtherDisplayMetrics(resources, targetDensity, targetScaledDensity, targetDensityDpi);<br><br>        <span class="hljs-keyword">return</span> resources;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 获取导航栏高度</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getNavBarHeight</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Resources resources)</span> &#123;<br>        <span class="hljs-type">int</span> <span class="hljs-variable">resourceId</span> <span class="hljs-operator">=</span> resources.getIdentifier(<span class="hljs-string">&quot;navigation_bar_height&quot;</span>, <span class="hljs-string">&quot;dimen&quot;</span>, <span class="hljs-string">&quot;android&quot;</span>);<br>        <span class="hljs-keyword">if</span> (resourceId != <span class="hljs-number">0</span>) &#123;<br>            <span class="hljs-keyword">return</span> resources.getDimensionPixelSize(resourceId);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 关闭适配，恢复默认值</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> resources 资源对象</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 恢复后的 Resources</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Resources <span class="hljs-title function_">closeAdapt</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Resources resources)</span> &#123;<br>        <span class="hljs-type">DisplayMetrics</span> <span class="hljs-variable">systemDm</span> <span class="hljs-operator">=</span> Resources.getSystem().getDisplayMetrics();<br>        <span class="hljs-type">DisplayMetrics</span> <span class="hljs-variable">appDm</span> <span class="hljs-operator">=</span> resources.getDisplayMetrics();<br><br>        <span class="hljs-comment">// 恢复为系统默认的 density 值</span><br>        appDm.density = systemDm.density;<br>        appDm.scaledDensity = systemDm.scaledDensity;<br>        appDm.densityDpi = systemDm.densityDpi;<br><br>        applyOtherDisplayMetrics(resources, systemDm.density, systemDm.scaledDensity, systemDm.densityDpi);<br><br>        <span class="hljs-keyword">return</span> resources;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * dp 值转 px 值</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> dpValue dp 值</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> px 值</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">dp2Px</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Resources resources, <span class="hljs-keyword">final</span> <span class="hljs-type">float</span> dpValue)</span> &#123;<br>        <span class="hljs-type">DisplayMetrics</span> <span class="hljs-variable">metrics</span> <span class="hljs-operator">=</span> resources.getDisplayMetrics();<br>        <span class="hljs-keyword">return</span> (<span class="hljs-type">int</span>) (dpValue * metrics.density + <span class="hljs-number">0.5</span>);<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * px 值转 dp 值</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> pxValue px 值</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> dp 值</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">px2Dp</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Resources resources, <span class="hljs-keyword">final</span> <span class="hljs-type">float</span> pxValue)</span> &#123;<br>        <span class="hljs-type">DisplayMetrics</span> <span class="hljs-variable">metrics</span> <span class="hljs-operator">=</span> resources.getDisplayMetrics();<br>        <span class="hljs-keyword">return</span> (<span class="hljs-type">int</span>) (pxValue / metrics.density + <span class="hljs-number">0.5</span>);<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 应用 density 到所有相关的 DisplayMetrics 对象</span><br><span class="hljs-comment">     * 通过反射找到 Resources 中的所有 DisplayMetrics 字段并更新</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">applyOtherDisplayMetrics</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Resources resources,</span><br><span class="hljs-params">                                                 <span class="hljs-keyword">final</span> <span class="hljs-type">float</span> targetDensity,</span><br><span class="hljs-params">                                                 <span class="hljs-keyword">final</span> <span class="hljs-type">float</span> targetScaledDensity,</span><br><span class="hljs-params">                                                 <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> targetDensityDpi)</span> &#123;<br>        <span class="hljs-keyword">if</span> (sMetricsFields == <span class="hljs-literal">null</span>) &#123;<br>            sMetricsFields = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>            Class&lt;?&gt; resCls = resources.getClass();<br>            Field[] declaredFields = resCls.getDeclaredFields();<br><br>            <span class="hljs-keyword">while</span> (declaredFields != <span class="hljs-literal">null</span> &amp;&amp; declaredFields.length &gt; <span class="hljs-number">0</span>) &#123;<br>                <span class="hljs-keyword">for</span> (Field field : declaredFields) &#123;<br>                    <span class="hljs-keyword">if</span> (field.getType().isAssignableFrom(DisplayMetrics.class)) &#123;<br>                        field.setAccessible(<span class="hljs-literal">true</span>);<br>                        <span class="hljs-type">DisplayMetrics</span> <span class="hljs-variable">tmpDm</span> <span class="hljs-operator">=</span> getMetricsFromField(resources, field);<br>                        <span class="hljs-keyword">if</span> (tmpDm != <span class="hljs-literal">null</span>) &#123;<br>                            sMetricsFields.add(field);<br>                            tmpDm.density = targetDensity;<br>                            tmpDm.scaledDensity = targetScaledDensity;<br>                            tmpDm.densityDpi = targetDensityDpi;<br>                        &#125;<br>                    &#125;<br>                &#125;<br><br>                resCls = resCls.getSuperclass();<br>                <span class="hljs-keyword">if</span> (resCls != <span class="hljs-literal">null</span>) &#123;<br>                    declaredFields = resCls.getDeclaredFields();<br>                &#125; <span class="hljs-keyword">else</span> &#123;<br>                    <span class="hljs-keyword">break</span>;<br>                &#125;<br>            &#125;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-comment">// 应用到已缓存的字段</span><br>            <span class="hljs-keyword">for</span> (Field metricsField : sMetricsFields) &#123;<br>                <span class="hljs-keyword">try</span> &#123;<br>                    <span class="hljs-type">DisplayMetrics</span> <span class="hljs-variable">dm</span> <span class="hljs-operator">=</span> (DisplayMetrics) metricsField.get(resources);<br>                    <span class="hljs-keyword">if</span> (dm != <span class="hljs-literal">null</span>) &#123;<br>                        dm.density = targetDensity;<br>                        dm.scaledDensity = targetScaledDensity;<br>                        dm.densityDpi = targetDensityDpi;<br>                    &#125;<br>                &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>                    Log.e(TAG, <span class="hljs-string">&quot;applyOtherDisplayMetrics: &quot;</span> + e);<br>                &#125;<br>            &#125;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 从字段中获取 DisplayMetrics 对象</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> DisplayMetrics <span class="hljs-title function_">getMetricsFromField</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Resources resources, <span class="hljs-keyword">final</span> Field field)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">return</span> (DisplayMetrics) field.get(resources);<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            Log.e(TAG, <span class="hljs-string">&quot;getMetricsFromField: &quot;</span> + e);<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>        &#125;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Android/" class="category-chain-item">Android</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Android/" class="print-no-link">#Android</a>
+      
+        <a href="/tags/iOS/" class="print-no-link">#iOS</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Android 屏幕适配方案</div>
+      <div>https://blog.youshanhai.com/2025/12/28/2025/屏幕适配方案/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>大树</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年12月28日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/12/27/2025/easycall/" title="简易电话 - 专为老人设计的拨号应用">
+                        <span class="hidden-mobile">简易电话 - 专为老人设计的拨号应用</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+    <div id="giscus" class="giscus"></div>
+    <script type="text/javascript">
+      Fluid.utils.loadComments('#giscus', function() {
+        var options = {"repo":"youshanhai/bigtree","repo-id":"R_kgDOQbLXYA","category":"Announcements","category-id":"DIC_kwDOQbLXYM4CyGrH","theme-light":"light","theme-dark":"dark","mapping":"pathname","reactions-enabled":1,"emit-metadata":0,"input-position":"bottom","lang":"zh-CN"};
+        var attributes = {};
+        for (let option in options) {
+          if (!option.startsWith('theme-')) {
+            var key = option.startsWith('data-') ? option : 'data-' + option;
+            attributes[key] = options[option];
+          }
+        }
+        var light = 'light';
+        var dark = 'dark';
+        window.GiscusThemeLight = light;
+        window.GiscusThemeDark = dark;
+        attributes['data-theme'] = document.documentElement.getAttribute('data-user-color-scheme') === 'dark' ? dark : light;
+        for (let attribute in attributes) {
+          var value = attributes[attribute];
+          if (value === undefined || value === null || value === '') {
+            delete attributes[attribute];
+          }
+        }
+        var s = document.createElement('script');
+        s.setAttribute('src', 'https://giscus.app/client.js');
+        s.setAttribute('crossorigin', 'anonymous');
+        for (let attribute in attributes) {
+          s.setAttribute(attribute, attributes[attribute]);
+        }
+        var ss = document.getElementsByTagName('script');
+        var e = ss.length > 0 ? ss[ss.length - 1] : document.head || document.documentElement;
+        e.parentNode.insertBefore(s, e.nextSibling);
+      });
+    </script>
+    <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+  
+<script src="/js/comment-filter.js"></script>
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
